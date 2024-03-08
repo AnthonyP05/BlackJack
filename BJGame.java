@@ -15,69 +15,80 @@ public class BJGame {
     }
 
     public void startGame() {
-        // Initialize the game, deal cards to players and dealer
-        System.out.println("Hello! How many players are playing today?");
-        int playerAmount = keyboard.nextInt();
+        boolean playAgain = true;
 
-        for(int i = 0; i < playerAmount; i++) {
-            System.out.printf("Player %d name? ", i + 1);
-            String name = keyboard.next();
-            System.out.printf("Player %d bet? ", i + 1);
-            int bet = keyboard.nextInt();
-            BJPlayer player = new BJPlayer(name, bet);
-            playerx.put(player, player.getBet());
-        }
+        while (playAgain) {
+            // Initialize the game, deal cards to players and dealer
+            System.out.println("Hello! How many players are playing today?");
+            int playerAmount = keyboard.nextInt();
 
-        System.out.println("\nAlright let's begin! Dealer is up first.\n");
-
-        BJCard dealerUpCard = deck.dealCard();
-        System.out.println("Dealer drew ? card, and a " + dealerUpCard.toString());
-
-        // Each Player is given 2 cards at the start
-        for (int i = 0; i < 2; i++) {
-            for (Map.Entry<BJPlayer, Integer> player : playerx.entrySet()) {
-                BJCard card = deck.dealCard();
-                player.getKey().addCardToHand(card);
-                System.out.printf("%s was given " + card.toString() + "\n", player.getKey().getName());
+            for(int i = 0; i < playerAmount; i++) {
+                System.out.printf("Player %d name? ", i + 1);
+                String name = keyboard.next();
+                System.out.printf("Player %d bet? ", i + 1);
+                int bet = keyboard.nextInt();
+                BJPlayer player = new BJPlayer(name, bet);
+                playerx.put(player, player.getBet());
             }
-        }
 
-        // Dealer is given 2 cards at the start, one face up and one faced down.
-        dealer.addCardToHand(deck.dealCard());
-        dealer.addCardToHand(dealerUpCard);
+            System.out.println("\nAlright let's begin! Dealer is up first.\n");
 
-        boolean firstTurn = true;
-        boolean gameOver = false;
+            BJCard dealerUpCard = deck.dealCard();
+            System.out.println("Dealer drew ? card, and a " + dealerUpCard.toString());
 
-        while (!gameOver) {
-            for (Map.Entry<BJPlayer, Integer> player : playerx.entrySet()) {
-                playerTurn(player.getKey(), playerx);
-            }
-            if(firstTurn) {
-                System.out.println("Dealer's hidden card is: " + dealer.getHand().get(0));
-                firstTurn = false;
-            }
-            dealerTurn();
-
-            gameOver = true;
-            for (Map.Entry<BJPlayer, Integer> playerEntry : playerx.entrySet()) {
-                BJPlayer player = playerEntry.getKey();
-                if(!player.isBusted()) {
-                    gameOver = false;
-                    break;
-                } else {
-                    determineWinner();
+            // Each Player is given 2 cards at the start
+            for (int i = 0; i < 2; i++) {
+                for (Map.Entry<BJPlayer, Integer> player : playerx.entrySet()) {
+                    BJCard card = deck.dealCard();
+                    player.getKey().addCardToHand(card);
+                    System.out.printf("%s was given " + card.toString() + "\n", player.getKey().getName());
                 }
             }
-            if (dealer.isBusted() || dealer.calculateScore() == 21) {
+
+            // Dealer is given 2 cards at the start, one face up and one faced down.
+            dealer.addCardToHand(deck.dealCard());
+            dealer.addCardToHand(dealerUpCard);
+
+            boolean firstTurn = true;
+            boolean gameOver = false;
+
+            while (!gameOver) {
+                for (Map.Entry<BJPlayer, Integer> player : playerx.entrySet()) {
+                    if (player.getKey().calculateScore() == 21) {
+                        determineWinner();
+                        playAgain = playAgain();
+
+                    }
+                    playerTurn(player.getKey(), playerx);
+                }
+                if(firstTurn) {
+                    System.out.println("Dealer's hidden card is: " + dealer.getHand().get(0));
+                    firstTurn = false;
+                }
+                dealerTurn();
+
                 gameOver = true;
-                determineWinner();
+                for (Map.Entry<BJPlayer, Integer> playerEntry : playerx.entrySet()) {
+                    BJPlayer player = playerEntry.getKey();
+                    if(!player.isBusted()) {
+                        gameOver = false;
+                        break;
+                    } else {
+                        determineWinner();
+                        playAgain = playAgain();
+
+                    }
+                }
+                if (dealer.isBusted() || dealer.calculateScore() == 21) {
+                    gameOver = true;
+                    determineWinner();
+                    playAgain = playAgain();
+
+                }
             }
+            // playAgain = playAgain();
         }
 
-        System.out.println("Play again? 'yes' or 'no'");
-        String answer = keyboard.next();
-        if (answer.equalsIgnoreCase("yes")) startGame();
     }
 
     public void playerTurn(BJPlayer player, HashMap<BJPlayer, Integer> players) {
@@ -115,12 +126,20 @@ public class BJGame {
         }
     }
 
+    public boolean playAgain() {
+        System.out.println("Play again? 'yes' or 'no'");
+        String answer = keyboard.next();
+        return answer.equalsIgnoreCase("yes");
+    }
+
     public void dealerTurn() {
         // Handle the dealer's turn (hit until score >= 17)
         if (dealer.calculateScore() < 17) {
             BJCard card = deck.dealCard();
             dealer.addCardToHand(card);
             System.out.println("Dealer drew a " + card.toString() + "\n");
+        } else {
+            System.out.println("Dealer is standing.");
         }
     }
 
