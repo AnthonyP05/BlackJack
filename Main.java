@@ -1,7 +1,6 @@
 public class Main {
     public static void main(String[] args) {
 
-
         /*
          * TODO: Add a banking system
          *       The banking system is supposed to record the amount of money you have start
