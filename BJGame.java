@@ -58,8 +58,6 @@ public class BJGame {
                 firstTurn = false;
             }
             dealerTurn();
-            determineWinner();
-
 
             gameOver = true;
             for (Map.Entry<BJPlayer, Integer> playerEntry : playerx.entrySet()) {
@@ -67,12 +65,19 @@ public class BJGame {
                 if(!player.isBusted()) {
                     gameOver = false;
                     break;
+                } else {
+                    determineWinner();
                 }
             }
-            if (dealer.isBusted()) {
+            if (dealer.isBusted() || dealer.calculateScore() == 21) {
                 gameOver = true;
+                determineWinner();
             }
         }
+
+        System.out.println("Play again? 'yes' or 'no'");
+        String answer = keyboard.next();
+        if (answer.equalsIgnoreCase("yes")) startGame();
     }
 
     public void playerTurn(BJPlayer player, HashMap<BJPlayer, Integer> players) {
